@@ -1,4 +1,5 @@
 .env
-*.md
+req.md
+ТЗ.md
 venv
 __pycache__
