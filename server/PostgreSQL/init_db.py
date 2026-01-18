@@ -3,12 +3,15 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import DeclarativeMeta
 from sqlalchemy import select, delete, inspect, update
 from PostgreSQL.db import Admins, Permissions, Base
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class BaseRepo:
-    def __init__(self, model: Type[DeclarativeMeta], engine):
+    def __init__(self, model: Type[DeclarativeMeta]):
         self.model = model
-        self.engine = engine
+        self.engine = create_async_engine(f'postgresql+asyncpg://postgres:123@{os.getenv("HOST_NAME")}:5432/EVENT_COLLECT')
 
     async def init_db(self) -> bool:
         """Initialization PostgreSQL database by creating necessary tables."""
@@ -34,7 +37,7 @@ class BaseRepo:
                     delete(self.model).where(self.model.id == user_id)
                 )
 
-    async def select_users(self, id: str | False, offset: int = 20, limit: int = 20):
+    async def select_users(self, id: str | bool, offset: int = 20, limit: int = 20):
         async with AsyncSession(self.engine) as session:
             query = select(self.model)
             if id is not False:

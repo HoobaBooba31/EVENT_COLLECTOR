@@ -1,7 +1,7 @@
 from pymongo import ASCENDING, DESCENDING
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from typing import Literal, Mapping, Any
-import db
+from mongodb import db
 import json
 
 database: AsyncIOMotorDatabase = db.get_db()
@@ -26,18 +26,18 @@ class MongoDBCollections:
             await database.create_collection("events")
 
         await database.api_keys.create_index(
-            [("key_hash", ASCENDING)],
+            [("api_key_hash", ASCENDING)],
             unique=True
         )
         await database.api_keys.create_index(
-            [("created_at", DESCENDING)]
+            [("expired_at", DESCENDING)]
         )
         await database.api_keys.create_index(
             [("revoked", ASCENDING)]
         )
 
         await database.events.create_index(
-            [("created_at", DESCENDING)]
+            [("expired_at", DESCENDING)]
         )
         await database.events.create_index(
             [("api_key_id", ASCENDING)]
@@ -49,7 +49,7 @@ class MongoDBCollections:
 
 
     async def insert_data(self, data: Mapping[str, Any]):
-        await self.col.insert_one(data)
+        res = await self.col.insert_one(data)
 
 
     async def select_data(self, data: Mapping[str, Any]):

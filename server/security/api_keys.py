@@ -6,7 +6,7 @@ from typing import Literal
 def hash_api_key(api_key: str) -> str:
     return hashlib.sha256(api_key.encode()).hexdigest()
 
-async def creating_api_key() -> tuple:
+def creating_api_key() -> tuple:
     """Creating API key for application curl requests.
         Returns:
             tuple: (api_key, hashed_api_key)"""
@@ -15,7 +15,3 @@ async def creating_api_key() -> tuple:
     # with httpx.AsyncClient() as client:
     #     pass
     return (api_key, hashed_api)
-
-
-if __name__ == "__main__":
-    asyncio.run(creating_api_key())
