@@ -48,21 +48,28 @@ class MongoDBCollections:
         return True
 
 
-    async def insert_data(self, data: Mapping[str, Any]):
+    async def insert_data(self, data: Mapping[str, Any]) -> None:
         res = await self.col.insert_one(data)
 
 
-    async def select_data(self, data: Mapping[str, Any]):
-        res = await self.col.find_one(data)
-        if res is None:
+    async def select_data(self, data: Mapping[str, Any]) -> list:
+        cursor = self.col.find(data)
+        result = []
+
+        async for doc in cursor:
+            doc["_id"] = str(doc["_id"])
+            result.append(doc)
+
+        if not result:
             raise ValueError("Data not found")
-        return res
+
+        return result
     
 
-    async def update_data_revoke(self, _id: str):
+    async def update_data_revoke(self, _id: str) -> None:
         await self.col.update_one({"_id": _id},
                                   {"revoked": True})
 
 
-    async def delete_all_data(self):
+    async def delete_all_data(self) -> None:
         await self.col.delete_many({})

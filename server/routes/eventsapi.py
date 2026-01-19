@@ -29,14 +29,6 @@ async def log_event(event_data: Events):
             raise HTTPException(status_code=403, detail="The API Key was revoked")
         
         else:
-            if event_data.platform == "app_curl":
-                    EventCollection = MongoDBCollections("events")
-                    await EventCollection.insert_data({"event": event_data.event,
-                                                "service": event_data.platform,
-                                                "api_key_id": hashlib.sha256(api_data.encode()).hexdigest(),
-                                                "expired_at": datetime.now(timezone.utc) + timedelta(days=1)})
-
-            else:
                 try:
                     EventCollection = MongoDBCollections("events")
                     await EventCollection.insert_data({"event": event_data.event,
@@ -54,16 +46,15 @@ async def log_event(event_data: Events):
     except Exception as e:
         logging.error(f"Something WRONG, {e}")
         raise HTTPException(status_code=400, detail="API key wasn't found")
+        
 
 
 @events_route.get("/select_all")
 async def get_all_events():
     try:
         EventCollection = MongoDBCollections("events")
-        events = await EventCollection.select_data()
+        events = await EventCollection.select_data({})
         return {"status_code": 200, "events": events}
     except Exception as e:
-        # Логирование ошибки (если есть логгер)
-        # logger.error(f"Error inserting API key: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=500, detail=str(e))
     
