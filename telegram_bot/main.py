@@ -3,7 +3,7 @@ from aiogram import Dispatcher, Bot
 from aiogram.fsm.storage.memory import MemoryStorage
 from telegram_bot.handlers import admin_route, client_route
 
-bot = Bot(token="8530482899:AAEKjq_Su2acD8jE7f8iUM4OnRO3KDr1mZE")
+bot = Bot(token="")
 dp = Dispatcher(storage=MemoryStorage())
 dp.include_routers(admin_route.admin_route, client_route.client_route)
 
