@@ -19,10 +19,10 @@ async def initialization_db(app: FastAPI):
     """     Initialize the database when the application starts.      """
     try:
         await MongoDBCollections.init_db()
-        # ad_repo = BaseRepo(model=Admins)
-        # await ad_repo.init_db()
-        # perm_repo = BaseRepo(model=Permissions)
-        # await perm_repo.init_db()
+        ad_repo = BaseRepo(model=Admins)
+        await ad_repo.init_db()
+        perm_repo = BaseRepo(model=Permissions)
+        await perm_repo.init_db()
         yield
     except (IntegrityError, OperationalError) as e:
         print(f"Database initialization error: {e}")

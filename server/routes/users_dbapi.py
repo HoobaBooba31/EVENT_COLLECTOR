@@ -11,14 +11,16 @@ load_dotenv()
 user_route = APIRouter(prefix="/users", tags=["users"])
 engine = create_async_engine(f'postgresql+asyncpg://postgres:123@{os.getenv("HOST_NAME")}:5432/EVENT_COLLECT')
 
-class UsersDBs(BaseModel):
-    id: str | bool
+class UsersSearch(BaseModel):
+    id: str | None = None
     offset: int
     limit: int | bool
 
+class UserAdd(BaseModel):
+    id: str
 
 @user_route.post("/add")
-async def add_user(user_data: UsersDBs):
+async def add_user(user_data: UserAdd):
     try:
         user_repo = BaseRepo(model=Permissions)
         await user_repo.insert_user(user_id=user_data.id)
@@ -30,7 +32,7 @@ async def add_user(user_data: UsersDBs):
 
 
 @user_route.post("/add_admin")
-async def add_admin(user_data: UsersDBs):
+async def add_admin(user_data: UserAdd):
     try:
         admin_repo = BaseRepo(model=Admins)
         await admin_repo.insert_user(user_id=user_data.id)
@@ -42,7 +44,7 @@ async def add_admin(user_data: UsersDBs):
 
 
 @user_route.delete("/remove_user")
-async def delete_user(user_data: UsersDBs):
+async def delete_user(user_data: UserAdd):
     try:
         user_repo = BaseRepo(model=Permissions)
         await user_repo.delete_user(user_id=user_data.id)
@@ -54,7 +56,7 @@ async def delete_user(user_data: UsersDBs):
     
 
 @user_route.delete("/remove_admin")
-async def delete_admin(user_data: UsersDBs):
+async def delete_admin(user_data: UserAdd):
     try:
         admin_repo = await BaseRepo(model=Admins)
         await admin_repo.delete_user(user_id=user_data.id)
@@ -66,11 +68,12 @@ async def delete_admin(user_data: UsersDBs):
     
 
 @user_route.get("/admins")
-async def get_admins(user_data: UsersDBs):
+async def get_admins(user_data: UsersSearch):
     try:
         admin_repo = await BaseRepo(model=Admins)
         admins = await admin_repo.select_users(id=user_data.id, offset=user_data.offset, limit=user_data.limit)
-        return {"status_code": 200, "admins": admins}
+        Admins = [admin.id async for admin in admins]
+        return {"status_code": 200, "admins": Admins}
     except Exception as e:
         # Логирование ошибки (если есть логгер)
         # logger.error(f"Error inserting API key: {e}")
@@ -78,11 +81,12 @@ async def get_admins(user_data: UsersDBs):
     
 
 @user_route.get("/users")
-async def get_users(user_data: UsersDBs):
+async def get_users(user_data: UsersSearch):
     try:
         user_repo = BaseRepo(model=Permissions)
         users = await user_repo.select_users(id=user_data.id, offset=user_data.offset, limit=user_data.limit)
-        return {"status_code": 200, "users": users}
+        User = [user.id async for user in users]
+        return {"status_code": 200, "users": User}
     except Exception as e:
         # Логирование ошибки (если есть логгер)
         # logger.error(f"Error inserting API key: {e}")

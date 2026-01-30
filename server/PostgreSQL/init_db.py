@@ -37,10 +37,10 @@ class BaseRepo:
                     delete(self.model).where(self.model.id == user_id)
                 )
 
-    async def select_users(self, id: str | bool, offset: int = 20, limit: int = 20):
+    async def select_users(self, id: str | None, offset: int = 20, limit: int = 20):
         async with AsyncSession(self.engine) as session:
             query = select(self.model)
-            if id is not False:
+            if id is not None:
                 query = query.where(id=id)
             else:
                 if limit != 0:
