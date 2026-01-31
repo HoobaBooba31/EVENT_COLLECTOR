@@ -12,21 +12,21 @@ from routes.users_dbapi import user_route, engine
 
 load_dotenv()
 
-
-
 @asynccontextmanager
 async def initialization_db(app: FastAPI):
     """     Initialize the database when the application starts.      """
     try:
         await MongoDBCollections.init_db()
         ad_repo = BaseRepo(model=Admins)
-        await ad_repo.init_db()
         perm_repo = BaseRepo(model=Permissions)
+        await ad_repo.init_db()
         await perm_repo.init_db()
         yield
     except (IntegrityError, OperationalError) as e:
         print(f"Database initialization error: {e}")
         yield
+    finally:
+        await engine.dispose()
 
 app = FastAPI(lifespan=initialization_db)
 app.include_router(apikey_route)

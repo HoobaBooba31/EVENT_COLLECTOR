@@ -7,23 +7,23 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+engine = create_async_engine(f'postgresql+asyncpg://postgres:123@{os.getenv("HOST_NAME")}:5432/EVENT_COLLECT', echo=True)
+
+
 
 class BaseRepo:
     def __init__(self, model: Type[DeclarativeMeta]):
         self.model = model
-        self.engine = create_async_engine(f'postgresql+asyncpg://postgres:123@{os.getenv("HOST_NAME")}:5432/EVENT_COLLECT')
+        self.engine = engine
 
-    async def init_db(self) -> bool:
-        """Initialization PostgreSQL database by creating necessary tables."""
-        async with self.engine.begin() as conn:
-            def check_and_create(sync_conn):
+    async def init_db(self):
+        """Create table for this model if it doesn't exist."""
+        async with engine.begin() as conn:
+            def create_tables(sync_conn):
                 inspector = inspect(sync_conn)
-                if not inspector.get_table_names():
-                    self.base.metadata.create_all(sync_conn)
-                    return True
-                return False
-
-            return await conn.run_sync(check_and_create)
+                if self.model.__tablename__ not in inspector.get_table_names():
+                    Base.metadata.create_all(sync_conn)
+            await conn.run_sync(create_tables)
 
     async def insert_user(self, user_id: str):
         async with AsyncSession(self.engine) as session:
@@ -37,14 +37,14 @@ class BaseRepo:
                     delete(self.model).where(self.model.id == user_id)
                 )
 
-    async def select_users(self, id: str | None, offset: int = 20, limit: int = 20):
+    async def select_users(self, id: int | None, offset: int = 20, limit: int = 20):
+        """Return: List[Model(...)]"""
         async with AsyncSession(self.engine) as session:
             query = select(self.model)
             if id is not None:
-                query = query.where(id=id)
-            else:
-                if limit != 0:
-                    query = query.offset(offset).limit(limit)
+                query = query.where(self.model.id==id)
+            if limit != 0:
+                query = query.offset(offset).limit(limit)
             result = await session.execute(query)
             return result.scalars().all()
         

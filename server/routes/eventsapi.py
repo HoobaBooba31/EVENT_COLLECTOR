@@ -61,6 +61,8 @@ async def log_event_tg(event_data: EventsTG):
         EventCollection = MongoDBCollections("events")
         await EventCollection.insert_data({"event": event_data.event,
                                             "service": event_data.service,
+                                            "api_key_id": None,
+                                            "payload": event_data.payload,
                                             "expired_at": datetime.now(timezone.utc) + timedelta(days=1)})
 
         return {"status_code": 200, "detail": "Event logged successfully"}

@@ -5,3 +5,4 @@ class UserListStates(StatesGroup):
     GetLimit = State()
     AddUserID = State()
     GetUserIDToRemove = State()
+    GetUserIDForFetch = State()
